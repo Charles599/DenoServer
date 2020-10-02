@@ -1,14 +1,18 @@
-import { Router } from 'https://deno.land/x/oak/mod.ts';
-import { v4 } from 'https://deno.land/std/uuid/mod.ts';
+import { Router, Context } from 'https://deno.land/x/oak/mod.ts';
 
-const router = new Router();
+const router: Router = new Router();
+const infoArr: string[] = [];
 
-router.get('/', ctx => {
-    ctx.response.body = 'Deno oak!';
-})
+router.all('/', async ({ response, request }: Context, next: () => Promise<void>) => {
+    let reqInfo = `${request.method} ${request.ip.replace(/\d+\.\d+$/g, '*')}`;
+    infoArr.push(reqInfo);
+    response.body = reqInfo;
+    await next();
+});
 
-router.get('/uuid', ctx => {
-    ctx.response.body = `UUID is ${v4.generate()}`;
-})
+router.get('/log', async ({ response }: Context, next: () => Promise<void>) => {
+    response.body = infoArr.join('\n');
+    await next();
+});
 
 export default router;
